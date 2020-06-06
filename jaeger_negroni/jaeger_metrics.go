@@ -14,11 +14,11 @@ type JaegerMetric interface {
 
 // Define Jaeger Metric used to tag the opentracing span with 
 // the URL used in the call
-type UrlJaegerMetric struct {}
+type URLJaegerMetric struct {}
 
-func (metric UrlJaegerMetric) EvaluateMetric(context *gin.Context) string { return context.Request.URL.Path }
+func (metric URLJaegerMetric) EvaluateMetric(context *gin.Context) string { return context.Request.URL.Path }
 
-func (metric UrlJaegerMetric) MetricName() string { return "url" }
+func (metric URLJaegerMetric) MetricName() string { return "url" }
 
 
 type RequestTimeJaegerMetric struct {}
@@ -36,6 +36,7 @@ func (metric RequestTimeJaegerMetric) MetricName() string { return "timestamp" }
 // Metrics tag the spans with the URL used in the context
 func DefaultJaegerMetrics() []JaegerMetric {
 	return []JaegerMetric { 
-		UrlJaegerMetric{},
+		URLJaegerMetric{},
+		RequestTimeJaegerMetric{},
 	}
 }

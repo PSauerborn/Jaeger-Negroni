@@ -39,6 +39,9 @@ type JaegerConfig struct { Host, ServiceName string; Port int }
 // Helper function used to generate a Global instance of a 
 // Jaeger Tracer used to report spans to the Jaeger Agent
 func GetJaegerTracer(cfg JaegerConfig) io.Closer {
+
+	log.Info(fmt.Sprintf("creating jaeger tracer for service %s at host %s at port %d", cfg.ServiceName, cfg.Host, cfg.Port))
+
 	// crate instance of jaeger configuration
 	config := jaeger_config.Configuration{
 		// configure sampler
@@ -71,13 +74,15 @@ func JaegerNegroni(metrics []JaegerMetric) gin.HandlerFunc {
 	return func (context *gin.Context) {
 		// skip middleware if tracing is disabled in environment variables
 		if !enableJaegerTracing { log.Warn("jaeger tracing disabled. calls will not be traced"); context.Next(); }
+		
+		log.Debug(fmt.Sprintf("starting trace for route '%s'", context.FullPath()))
 
 		// create span for each incoming request and execute in context of span
 		span := opentracing.StartSpan(context.FullPath())
 		defer span.Finish()
 
-		// iterate over map of metric interfaces to generate key:value pairs in spans
-		for _, metric := range(metrics) { span.SetBaggageItem(metric.MetricName(), metric.EvaluateMetric(context)) }
+		// iterate over list of metric interfaces to generate key:value pairs in spans
+		for _, metric := range(metrics) { span.SetTag(metric.MetricName(), metric.EvaluateMetric(context)) }
 		
 		context.Next()
 	}
