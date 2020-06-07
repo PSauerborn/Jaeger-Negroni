@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	jaeger_negroni "github.com/PSauerborn/Jaeger-Negroni/jaeger_negroni"
+	jaeger_negroni "github.com/PSauerborn/jaeger-negroni/jaeger_negroni"
 	opentracing "github.com/opentracing/opentracing-go"
 )
 

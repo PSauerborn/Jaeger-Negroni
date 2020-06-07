@@ -1,4 +1,4 @@
-module github.com/PSauerborn/Jaeger-Negroni
+module github.com/PSauerborn/jaeger-negroni
 
 go 1.14
 
