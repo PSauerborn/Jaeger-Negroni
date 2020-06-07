@@ -70,20 +70,25 @@ func GetJaegerTracer(cfg JaegerConfig) io.Closer {
 
 // Define JaegerNegroni Middleware used to trace incoming requests using the
 // Jaeger Tracing interface via the opentracing standard
-func JaegerNegroni(metrics []JaegerMetric) gin.HandlerFunc {
+func JaegerNegroni(pre_metrics []JaegerMetric, post_metrics []JaegerMetric) gin.HandlerFunc {
 	return func (context *gin.Context) {
 		// skip middleware if tracing is disabled in environment variables
-		if !enableJaegerTracing { log.Warn("jaeger tracing disabled. calls will not be traced"); context.Next(); }
-		
-		log.Debug(fmt.Sprintf("starting trace for route '%s'", context.FullPath()))
+		if !enableJaegerTracing { 
+			log.Warn("jaeger tracing disabled. calls will not be traced"); context.Next(); 
+		} else {
+			log.Debug(fmt.Sprintf("starting trace for route '%s'", context.FullPath()))
 
-		// create span for each incoming request and execute in context of span
-		span := opentracing.StartSpan(context.FullPath())
-		defer span.Finish()
+			// create span for each incoming request and execute in context of span
+			span := opentracing.StartSpan(context.FullPath())
+			defer span.Finish()
 
-		// iterate over list of metric interfaces to generate key:value pairs in spans
-		for _, metric := range(metrics) { span.SetTag(metric.MetricName(), metric.EvaluateMetric(context)) }
-		
-		context.Next()
+			// set pre-request tags on jaeger span
+			SetJaegerTags(context, pre_metrics, span)
+			
+			context.Next()
+
+			// set post request tags on jaeger span
+			SetJaegerTags(context, post_metrics, span)
+		}
 	}
 }

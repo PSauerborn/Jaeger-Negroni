@@ -41,10 +41,10 @@ func main() {
 	defer closer.Close()
 
 	// get default metrics used to tag spans
-	metrics := jaeger_negroni.DefaultJaegerMetrics()
+	pre_metrics, post_metrics := jaeger_negroni.DefaultPreRequestMetrics(), jaeger_negroni.DefaultPostRequestMetrics()
 
 	// apply JaegerNegroni MiddleWare for Jaeger Tracing functionality
-	router.Use(jaeger_negroni.JaegerNegroni(metrics))
+	router.Use(jaeger_negroni.JaegerNegroni(pre_metrics, post_metrics))
 	router.GET("/health_check", func(context *gin.Context) { context.JSON(200, gin.H{ "http_code": 200, "message": "api running" }) })
 
 	router.Run()

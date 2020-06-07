@@ -57,10 +57,12 @@ the `io.Close` interface, which should be handled with a `defer` call as done ab
 
 ##### Add `JaegerNegroni` Middleware
 
-Once the Tracer has been created, the Middleware can be added. One important thing to note about the Middleware is that it is created with an Array of `JaegerMetric` objects. The `JaegerMetric` interface allows users to define a set of tags (`key:value` pairs) that are tagged unto each trace. The `JaegerNegroni` interface provides the `DefaultJaegerMetrics()` function, which creates an array of default Jaeger Tags if users do not want to set their own interface(s). The default interfaces include
+Once the Tracer has been created, the Middleware can be added. One important thing to note about the Middleware is that it is created with an Array of `JaegerMetric` objects for Pre and Post request. The `JaegerMetric` interface allows users to define a set of tags (`key:value` pairs) that are tagged unto each trace. The `JaegerNegroni` interface provides the `DefaultPreRequestJaegerMetrics()` and `DefaultPostRequestJaegerMetrics()`  functions, which create an array of default Jaeger Tags for both pre and post requests if users do not want to set their own interface(s). The default interfaces include
 
 1. `URLJaegerMetric` - tags each span with the url called
 2. `RequestTimeJaegerMetric` - tags each span with the current UTC time at the time of call
+3. `ProcessedTimeJaegerMetric` - tags each span with the current UTC time evaluated post-request
+4. `RequestStatusJaegerMetric` - tags each span with the HTTP status code evaluated post-request
 
 See below for more details on the `JaegerMetric` interface and how to setup your own tags
 
@@ -68,10 +70,10 @@ In order to implement the Middleware, simply call
 
 ```go
 // get default metrics used to tag spans
-metrics := jaeger_negroni.DefaultJaegerMetrics()
+pre_metrics, post_metrics := jaeger_negroni.DefaultPreRequestMetrics(), jaeger_negroni.DefaultPostRequestMetrics()
 
 // apply JaegerNegroni MiddleWare for Jaeger Tracing functionality
-router.Use(jaeger_negroni.JaegerNegroni(metrics))
+router.Use(jaeger_negroni.JaegerNegroni(pre_metrics, post_metrics))
 ```
 
 where the `router` instance is the `gin-gonic` router used to serve the application. Thats it! All the incoming requests will now be traced, and all the traces will the available to view and aggregate on your Jaeger UI. All together, a basic instrumentation is achieved with
@@ -102,10 +104,10 @@ func main() {
 	defer closer.Close()
 
 	// get default metrics used to tag spans
-	metrics := jaeger_negroni.DefaultJaegerMetrics()
+	pre_metrics, post_metrics := jaeger_negroni.DefaultPreRequestMetrics(), jaeger_negroni.DefaultPostRequestMetrics()
 
 	// apply JaegerNegroni MiddleWare for Jaeger Tracing functionality
-	router.Use(jaeger_negroni.JaegerNegroni(metrics))
+	router.Use(jaeger_negroni.JaegerNegroni(pre_metrics, post_metrics))
 	router.GET("/health_check", func(context *gin.Context) { context.JSON(200, gin.H{ "http_code": 200, "message": "api running" }) })
 
 	router.Run()
@@ -139,7 +141,7 @@ router.Use(jaeger_negroni.JaegerNegroni(metrics))
 and to use both the Default and Custom metrics
 
 ```go
-metrics := append(jaeger_negroni.DefaultJaegerMetrics(), []JaegerMetrics{ ExampleMetric{} })
+metrics := append(jaeger_negroni.DefaultPreRequestJaegerMetrics(), []JaegerMetrics{ ExampleMetric{} })
 router.Use(jaeger_negroni.JaegerNegroni(metrics))
 ```
 
