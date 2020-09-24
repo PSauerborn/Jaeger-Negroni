@@ -1,7 +1,6 @@
 package jaeger_negroni
 
 import (
-    "net/http"
     "github.com/gin-gonic/gin"
 )
 
@@ -28,18 +27,5 @@ func(metric HTTPRequestMethodMetric) MetricName() string {
 }
 
 func(metric HTTPRequestMethodMetric) EvaluateMetric(ctx *gin.Context) string {
-    switch ctx.Request.Method {
-    case http.MethodGet:
-        return "GET"
-    case http.MethodPost:
-        return "POST"
-    case http.MethodPatch:
-        return "PATCH"
-    case http.MethodDelete:
-        return "DELETE"
-    case http.MethodPut:
-        return "PUT"
-    default:
-        return ""
-    }
+    return ctx.Request.Method
 }
