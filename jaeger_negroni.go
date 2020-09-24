@@ -5,6 +5,7 @@ import (
     "io"
     "fmt"
     "strings"
+    "net/http"
     "github.com/gin-gonic/gin"
     log "github.com/sirupsen/logrus"
     opentracing "github.com/opentracing/opentracing-go"
@@ -19,7 +20,7 @@ var (
 )
 
 // function used to create new base configuration with base metrics
-func NewConfig(host, serviceName string, port int) JaegerNegroniConfig {
+func Config(host, serviceName string, port int) JaegerNegroniConfig {
     jaegerConfig := JaegerConfig{JaegerHost: host, JaegerPort: port, ServiceName: serviceName}
     return JaegerNegroniConfig{
         JaegerConf: jaegerConfig,
@@ -72,6 +73,16 @@ func setJaegerSpans(span opentracing.Span, metrics []JaegerMetric, ctx *gin.Cont
     }
 }
 
+func extractSpan(req *http.Request) (*opentracing.SpanContext, error) {
+    wireContext, err := opentracing.GlobalTracer().Extract(
+        opentracing.HTTPHeaders,
+        opentracing.HTTPHeadersCarrier(req.Header))
+    if err != nil {
+        return nil, err
+    }
+    return &wireContext, nil
+}
+
 // Jaeger Negroni tracing middleware used to trace requests
 func JaegerNegroni(cfg JaegerNegroniConfig) gin.HandlerFunc {
     return func(ctx *gin.Context) {
@@ -82,8 +93,15 @@ func JaegerNegroni(cfg JaegerNegroniConfig) gin.HandlerFunc {
             route := ctx.FullPath()
             log.Debug(fmt.Sprintf("starting trace for route %s", route))
 
-            // start new opentracing span to trace route
-            span := opentracing.StartSpan(route)
+            var span opentracing.Span
+            parentSpan, _ := extractSpan(ctx.Request)
+            if parentSpan != nil {
+                log.Debug("continuing trace with parent span")
+                span = opentracing.StartSpan(route, opentracing.ChildOf(*parentSpan))
+            } else {
+                log.Debug("starting new span")
+                span = opentracing.StartSpan(route)
+            }
             defer span.Finish()
             // set pre request metrics in span
             setJaegerSpans(span, cfg.PreRequestMetrics, ctx)

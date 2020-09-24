@@ -13,7 +13,7 @@ func main() {
     router := gin.New()
     router.Use(gin.Recovery())
     // create new config object
-    config := jaeger_negroni.NewConfig("localhost", "test-service", 6831)
+    config := jaeger_negroni.Config("192.168.99.100", "test-service", 6831)
     tracer := jaeger_negroni.NewTracer(config)
     defer tracer.Close()
 
