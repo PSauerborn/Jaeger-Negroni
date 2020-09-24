@@ -1,2 +1,0 @@
-REM sample batch script used to start the Jaeger All-in-one image for local testing
-docker run -p 6831:6831/udp -p 6832:6832/udp -p 16686:16686 --name local-jaeger --env LOG_LEVEL=debug jaegertracing/all-in-one:latest

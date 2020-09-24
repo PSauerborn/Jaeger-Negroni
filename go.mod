@@ -3,6 +3,7 @@ module github.com/PSauerborn/jaeger-negroni
 go 1.14
 
 require (
+	github.com/codahale/hdrhistogram v0.9.0 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1 // indirect
