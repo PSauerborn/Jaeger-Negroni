@@ -24,8 +24,8 @@ func Config(host, serviceName string, port int) JaegerNegroniConfig {
     jaegerConfig := JaegerConfig{JaegerHost: host, JaegerPort: port, ServiceName: serviceName}
     return JaegerNegroniConfig{
         JaegerConf: jaegerConfig,
-        PreRequestMetrics: []JaegerMetric{HTTPUrlMetric{}, HTTPRequestMethodMetric{}},
-        PostRequestMetrics: []JaegerMetric{},
+        PreRequestMetrics: preRequestMetrics,
+        PostRequestMetrics: postRequestMetrics,
     }
 }
 
@@ -73,6 +73,7 @@ func setJaegerSpans(span opentracing.Span, metrics []JaegerMetric, ctx *gin.Cont
     }
 }
 
+// function used to extract active jaeger span from request headers
 func extractSpan(req *http.Request) (*opentracing.SpanContext, error) {
     wireContext, err := opentracing.GlobalTracer().Extract(
         opentracing.HTTPHeaders,

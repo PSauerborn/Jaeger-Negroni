@@ -1,7 +1,8 @@
 package jaeger_negroni
 
 import (
-
+    "fmt"
+    log "github.com/sirupsen/logrus"
 )
 
 type JaegerConfig struct {
@@ -18,11 +19,13 @@ type JaegerNegroniConfig struct {
 
 // function used to add new pre-request metrics to jaeger configuration
 func(cfg JaegerNegroniConfig) AddPreRequestMetric(metric JaegerMetric) {
+    log.Debug(fmt.Sprintf("adding new pre-request metric %s", metric))
     cfg.PreRequestMetrics = append(cfg.PreRequestMetrics, metric)
 }
 
 // function used to add new pre-request metrics to jaeger configuration
 func(cfg JaegerNegroniConfig) AddPostRequestMetric(metric JaegerMetric) {
+    log.Debug(fmt.Sprintf("adding new post-request metric %s", metric))
     cfg.PostRequestMetrics = append(cfg.PostRequestMetrics, metric)
 }
 
